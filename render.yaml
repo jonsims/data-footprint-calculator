@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: data-footprint-calculator
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server.js
+    plan: free
+    envVars:
+      - key: ADMIN_PIN
+        value: 1234
+      - key: NODE_ENV
+        value: production
