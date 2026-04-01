@@ -1,0 +1,15 @@
+{
+  "name": "data-footprint-calculator",
+  "version": "1.0.0",
+  "description": "Digital footprint calculator with class dashboard for SES2000",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "qrcode": "^1.5.3"
+  }
+}

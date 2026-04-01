@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Footprint Calculator — SES2000</title>
+  <style>
+    :root {
+      --teal: #00694E;
+      --teal-light: #e8f5f0;
+      --gold: #C5A033;
+      --gold-light: #faf3e0;
+      --charcoal: #333333;
+      --gray-light: #F0F0F0;
+      --gray-mid: #e0e0e0;
+      --white: #ffffff;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow-md: 0 2px 8px rgba(0,0,0,0.12);
+      --transition: 200ms ease;
+
+      --color-ai: #7c3aed;
+      --color-google: #0369a1;
+      --color-video: #dc2626;
+      --color-calls: #d97706;
+      --color-music: #16a34a;
+      --color-cloud: #6366f1;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--gray-light);
+      color: var(--charcoal);
+      line-height: 1.5;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 16px;
+      padding-bottom: 40px;
+    }
+
+    /* Connection warning */
+    .conn-warning {
+      display: none;
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #991b1b;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .conn-warning.visible { display: block; }
+
+    /* Header */
+    header {
+      text-align: center;
+      padding: 24px 0 8px;
+    }
+
+    header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--teal);
+      line-height: 1.2;
+      margin-bottom: 6px;
+    }
+
+    header p {
+      font-size: 14px;
+      color: #666;
+    }
+
+    /* Input Cards */
+    .input-section {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .input-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px 14px 14px 18px;
+      border-left: 4px solid var(--gray-mid);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 8px;
+      transition: opacity var(--transition);
+    }
+
+    .input-card.locked { opacity: 0.6; }
+
+    .input-card[data-category="ai"] { border-left-color: var(--color-ai); }
+    .input-card[data-category="google"] { border-left-color: var(--color-google); }
+    .input-card[data-category="video"] { border-left-color: var(--color-video); }
+    .input-card[data-category="calls"] { border-left-color: var(--color-calls); }
+    .input-card[data-category="music"] { border-left-color: var(--color-music); }
+    .input-card[data-category="cloud"] { border-left-color: var(--color-cloud); }
+
+    .input-label {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .input-label .label-text {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--charcoal);
+    }
+
+    .input-label .label-unit {
+      font-size: 12px;
+      color: #888;
+      margin-top: 1px;
+    }
+
+    .input-card input {
+      width: 80px;
+      height: 48px;
+      border: 2px solid var(--gray-mid);
+      border-radius: 8px;
+      font-size: 18px;
+      font-family: var(--font);
+      font-weight: 600;
+      text-align: center;
+      color: var(--charcoal);
+      background: var(--gray-light);
+      transition: border-color var(--transition);
+      -webkit-appearance: none;
+      -moz-appearance: textfield;
+    }
+
+    .input-card input:focus {
+      outline: none;
+      border-color: var(--teal);
+      background: var(--white);
+    }
+
+    .input-card input::placeholder {
+      color: #bbb;
+      font-weight: 400;
+    }
+
+    .input-card input:disabled {
+      opacity: 0.7;
+      background: var(--gray-mid);
+    }
+
+    /* Calculate Button */
+    .calc-btn {
+      display: block;
+      width: 100%;
+      margin-top: 16px;
+      padding: 14px;
+      background: var(--teal);
+      color: var(--white);
+      border: none;
+      border-radius: var(--radius);
+      font-size: 17px;
+      font-weight: 600;
+      font-family: var(--font);
+      cursor: pointer;
+      min-height: 52px;
+      transition: background var(--transition), transform 100ms ease;
+    }
+
+    .calc-btn:active {
+      transform: scale(0.98);
+      background: #005740;
+    }
+
+    .calc-btn:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    .calc-btn:disabled:active {
+      transform: none;
+    }
+
+    /* Results */
+    .results {
+      margin-top: 24px;
+      display: none;
+    }
+
+    .results.visible {
+      display: block;
+    }
+
+    .results-header {
+      background: var(--teal);
+      color: var(--white);
+      border-radius: var(--radius);
+      padding: 24px 20px;
+      text-align: center;
+      box-shadow: var(--shadow-md);
+    }
+
+    .results-header .total-label {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.85;
+    }
+
+    .results-header .total-value {
+      font-size: 48px;
+      font-weight: 700;
+      line-height: 1.1;
+      margin: 8px 0 4px;
+    }
+
+    .results-header .total-unit {
+      font-size: 20px;
+      font-weight: 400;
+      opacity: 0.8;
+    }
+
+    .results-header .framing-text {
+      font-size: 15px;
+      margin-top: 12px;
+      line-height: 1.4;
+      opacity: 0.9;
+    }
+
+    /* Hero Comparison */
+    .hero-comparison {
+      background: var(--gold-light);
+      border: 2px solid var(--gold);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-top: 16px;
+      text-align: center;
+    }
+
+    .hero-comparison .hero-icon {
+      font-size: 32px;
+    }
+
+    .hero-comparison .hero-text {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--charcoal);
+      margin-top: 4px;
+    }
+
+    .hero-comparison .hero-detail {
+      font-size: 13px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    /* Bar Chart */
+    .chart-section {
+      margin-top: 16px;
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .chart-section h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--charcoal);
+      margin-bottom: 14px;
+    }
+
+    .chart-row {
+      display: grid;
+      grid-template-columns: 90px 1fr 46px;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .chart-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .chart-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #555;
+      text-align: right;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .chart-bar-track {
+      height: 24px;
+      background: var(--gray-light);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .chart-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      width: 0;
+      transition: width 600ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .chart-bar-fill.largest {
+      box-shadow: 0 0 0 2px var(--gold);
+    }
+
+    .chart-pct {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--charcoal);
+      text-align: right;
+    }
+
+    /* Equivalents */
+    .equivalents {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .equiv-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px 10px;
+      text-align: center;
+    }
+
+    .equiv-card .equiv-icon {
+      font-size: 24px;
+    }
+
+    .equiv-card .equiv-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--teal);
+      margin: 4px 0 2px;
+    }
+
+    .equiv-card .equiv-label {
+      font-size: 11px;
+      color: #666;
+      line-height: 1.3;
+    }
+
+    /* Annual Projection */
+    .annual-section {
+      margin-top: 16px;
+    }
+
+    .annual-toggle {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background: var(--white);
+      border: 2px solid var(--gray-mid);
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: var(--font);
+      color: var(--teal);
+      cursor: pointer;
+      transition: border-color var(--transition), background var(--transition);
+    }
+
+    .annual-toggle:active {
+      background: var(--teal-light);
+    }
+
+    .annual-toggle.active {
+      border-color: var(--teal);
+      background: var(--teal-light);
+    }
+
+    .annual-content {
+      display: none;
+      background: var(--teal-light);
+      border-radius: 0 0 var(--radius) var(--radius);
+      padding: 16px;
+      margin-top: -4px;
+      border: 2px solid var(--teal);
+      border-top: none;
+      text-align: center;
+    }
+
+    .annual-content.visible {
+      display: block;
+    }
+
+    .annual-content .annual-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--teal);
+    }
+
+    .annual-content .annual-unit {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .annual-content .annual-equiv {
+      font-size: 13px;
+      color: #555;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+
+    /* Submit Button */
+    .submit-section {
+      margin-top: 20px;
+    }
+
+    .submit-btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: var(--gold);
+      color: var(--white);
+      border: none;
+      border-radius: var(--radius);
+      font-size: 17px;
+      font-weight: 600;
+      font-family: var(--font);
+      cursor: pointer;
+      min-height: 52px;
+      transition: background var(--transition), transform 100ms ease;
+    }
+
+    .submit-btn:active {
+      transform: scale(0.98);
+      background: #a88a2a;
+    }
+
+    .submit-btn:disabled {
+      cursor: default;
+    }
+
+    .submit-btn:disabled:active {
+      transform: none;
+    }
+
+    .submit-btn.submitted {
+      background: #16a34a;
+    }
+
+    .submit-error {
+      font-size: 13px;
+      color: #dc2626;
+      text-align: center;
+      margin-top: 6px;
+      display: none;
+    }
+
+    .submit-error.visible { display: block; }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 24px;
+      color: #888;
+      font-size: 15px;
+    }
+
+    /* Sources */
+    .sources-section {
+      margin-top: 24px;
+    }
+
+    .sources-section details {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .sources-section summary {
+      padding: 14px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--charcoal);
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sources-section summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .sources-section summary::after {
+      content: '\25B6';
+      font-size: 10px;
+      color: #999;
+      transition: transform var(--transition);
+    }
+
+    .sources-section details[open] summary::after {
+      transform: rotate(90deg);
+    }
+
+    .sources-body {
+      padding: 0 16px 16px;
+      font-size: 12px;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .sources-body h4 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--charcoal);
+      margin-top: 12px;
+      margin-bottom: 2px;
+    }
+
+    .sources-body h4:first-child {
+      margin-top: 0;
+    }
+
+    .sources-body p {
+      margin-bottom: 4px;
+    }
+
+    .sources-body .note {
+      background: var(--gold-light);
+      border-left: 3px solid var(--gold);
+      padding: 8px 10px;
+      margin-top: 10px;
+      border-radius: 0 4px 4px 0;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 32px;
+      text-align: center;
+      font-size: 12px;
+      color: #999;
+      padding-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="conn-warning" id="connWarning">Could not connect to the server. Your results are still calculated locally.</div>
+
+    <header>
+      <h1>What's Your Digital Footprint?</h1>
+      <p>Estimate the energy your weekly digital habits consume</p>
+    </header>
+
+    <div class="input-section" id="inputSection">
+      <div class="input-card" data-category="ai">
+        <div class="input-label">
+          <span class="label-text">AI Queries</span>
+          <span class="label-unit">ChatGPT, Gemini, etc. &middot; queries/week</span>
+        </div>
+        <input type="number" id="input-ai" inputmode="numeric" placeholder="50" min="0" max="5000">
+      </div>
+
+      <div class="input-card" data-category="google">
+        <div class="input-label">
+          <span class="label-text">Google Searches</span>
+          <span class="label-unit">searches/week</span>
+        </div>
+        <input type="number" id="input-google" inputmode="numeric" placeholder="200" min="0" max="10000">
+      </div>
+
+      <div class="input-card" data-category="video">
+        <div class="input-label">
+          <span class="label-text">Video Streaming</span>
+          <span class="label-unit">Netflix, YouTube, etc. &middot; hours/week</span>
+        </div>
+        <input type="number" id="input-video" inputmode="numeric" placeholder="10" min="0" max="168" step="0.5">
+      </div>
+
+      <div class="input-card" data-category="calls">
+        <div class="input-label">
+          <span class="label-text">Video Calls</span>
+          <span class="label-unit">Zoom, Teams, etc. &middot; hours/week</span>
+        </div>
+        <input type="number" id="input-calls" inputmode="numeric" placeholder="5" min="0" max="168" step="0.5">
+      </div>
+
+      <div class="input-card" data-category="music">
+        <div class="input-label">
+          <span class="label-text">Music Streaming</span>
+          <span class="label-unit">Spotify, Apple Music &middot; hours/week</span>
+        </div>
+        <input type="number" id="input-music" inputmode="numeric" placeholder="15" min="0" max="168" step="0.5">
+      </div>
+
+      <div class="input-card" data-category="cloud">
+        <div class="input-label">
+          <span class="label-text">Cloud Storage &amp; Sync</span>
+          <span class="label-unit">iCloud, Google Drive &middot; GB synced/week</span>
+        </div>
+        <input type="number" id="input-cloud" inputmode="numeric" placeholder="5" min="0" max="500" step="0.5">
+      </div>
+    </div>
+
+    <button class="calc-btn" id="calcBtn">Calculate My Footprint</button>
+
+    <div class="results" id="results">
+      <!-- Filled by JS -->
+    </div>
+
+    <div class="sources-section">
+      <details>
+        <summary>Sources &amp; Methodology</summary>
+        <div class="sources-body">
+          <p>Energy estimates represent total system cost: device + network + data center.</p>
+
+          <h4>Google Search: 0.0003 kWh/query</h4>
+          <p>Google Environmental Report (2024); corroborated by IEA and Carbon Brief.</p>
+
+          <h4>AI Query: 0.003 kWh/query</h4>
+          <p>de Vries, A. (2023). "The growing energy footprint of artificial intelligence." <em>Joule</em>, 7(10). The "10x Google" figure. More recent estimates (Epoch AI, 2025) suggest ~0.0003&ndash;0.001 kWh for optimized models like GPT-4o. The higher figure is used here to represent loaded queries (multi-turn, reasoning, image generation).</p>
+
+          <h4>Video Streaming: 0.15 kWh/hour</h4>
+          <p>IEA (2020) estimated ~0.077 kWh/hr; Carbon Brief reports up to 0.15 kWh/hr for HD on laptop/TV. Upper-middle estimate used.</p>
+
+          <h4>Video Calls: 0.15 kWh/hour</h4>
+          <p>Obringer et al. (2021), Purdue/Yale/MIT. Camera-on HD group calls at the higher end of 0.05&ndash;0.17 kWh/hr range.</p>
+
+          <h4>Music Streaming: 0.02 kWh/hour</h4>
+          <p>Constellation Energy (2020). Audio uses ~50x less bandwidth than HD video.</p>
+
+          <h4>Cloud Sync: 0.06 kWh/GB</h4>
+          <p>Modern hyperscale estimates range 0.01&ndash;0.10 kWh/GB; 0.06 is a midpoint for upload/download + short-term storage overhead.</p>
+
+          <div class="note">
+            <strong>Note on AI energy:</strong> The 0.003 kWh figure matches the course slides and the "10x Google search" framing. In 2025, OpenAI disclosed ~0.00034 kWh per average GPT-4o query. The range is wide because query complexity varies enormously.
+          </div>
+        </div>
+      </details>
+    </div>
+
+    <footer>
+      SES Behavior Systems &mdash; Babson College
+    </footer>
+  </div>
+
+  <script>
+    // ─── Visitor ID ───────────────────────────────────────────────────────────
+    let VISITOR_ID = localStorage.getItem('dfc_visitor_id');
+    if (!VISITOR_ID) {
+      VISITOR_ID = 'v_' + Math.random().toString(36).slice(2, 10);
+      localStorage.setItem('dfc_visitor_id', VISITOR_ID);
+    }
+
+    let isSubmitted = localStorage.getItem('dfc_submitted') === 'true';
+
+    // ─── Categories ───────────────────────────────────────────────────────────
+    const CATEGORIES = [
+      { id: 'ai',     label: 'AI Queries',       factor: 0.003,  max: 5000, color: '#7c3aed' },
+      { id: 'google', label: 'Google Searches',   factor: 0.0003, max: 10000, color: '#0369a1' },
+      { id: 'video',  label: 'Video Streaming',   factor: 0.150,  max: 168, color: '#dc2626' },
+      { id: 'calls',  label: 'Video Calls',       factor: 0.150,  max: 168, color: '#d97706' },
+      { id: 'music',  label: 'Music Streaming',   factor: 0.020,  max: 168, color: '#16a34a' },
+      { id: 'cloud',  label: 'Cloud Sync',        factor: 0.060,  max: 500, color: '#6366f1' }
+    ];
+
+    function getInputValue(id) {
+      const val = parseFloat(document.getElementById('input-' + id).value);
+      if (isNaN(val) || val < 0) return 0;
+      return val;
+    }
+
+    function calculate() {
+      let totalKwh = 0;
+      const breakdown = [];
+
+      for (const cat of CATEGORIES) {
+        const raw = getInputValue(cat.id);
+        const clamped = Math.min(raw, cat.max);
+        const kwh = clamped * cat.factor;
+        totalKwh += kwh;
+        breakdown.push({ ...cat, kwh, input: clamped });
+      }
+
+      breakdown.sort((a, b) => b.kwh - a.kwh);
+
+      for (const item of breakdown) {
+        item.pct = totalKwh > 0 ? (item.kwh / totalKwh) * 100 : 0;
+      }
+
+      return { totalKwh, breakdown };
+    }
+
+    function getEquivalents(kwh) {
+      return {
+        bulbHours: kwh / 0.1,
+        bulbDays: kwh / 2.4,
+        phoneCharges: kwh / 0.012,
+        miles: kwh / 0.32,
+        householdPct: (kwh / 200) * 100
+      };
+    }
+
+    function getFramingText(kwh) {
+      const charges = Math.round(kwh / 0.012);
+      if (charges < 100) {
+        return `That's like charging your phone ${charges} times\u2009\u2014\u2009just from your digital habits.`;
+      } else if (charges <= 500) {
+        return `That's ${charges} phone charges worth of energy every week\u2009\u2014\u2009just from your screen time.`;
+      } else {
+        return `Your digital life uses serious energy\u2009\u2014\u2009equivalent to charging your phone ${charges} times a week.`;
+      }
+    }
+
+    function renderResults() {
+      const { totalKwh, breakdown } = calculate();
+      const resultsEl = document.getElementById('results');
+
+      if (totalKwh === 0) {
+        resultsEl.classList.add('visible');
+        resultsEl.innerHTML = '<div class="empty-state">Enter your weekly usage above to see your digital footprint.</div>';
+        return;
+      }
+
+      const eq = getEquivalents(totalKwh);
+      const maxKwh = breakdown[0].kwh;
+
+      let chartHtml = '';
+      breakdown.forEach((item, i) => {
+        const widthPct = maxKwh > 0 ? (item.kwh / maxKwh) * 100 : 0;
+        const isLargest = i === 0;
+        chartHtml += `
+          <div class="chart-row">
+            <span class="chart-label">${item.label}</span>
+            <div class="chart-bar-track">
+              <div class="chart-bar-fill ${isLargest ? 'largest' : ''}"
+                   data-width="${widthPct}"
+                   style="background: ${item.color}; transition-delay: ${i * 80}ms;">
+              </div>
+            </div>
+            <span class="chart-pct">${item.pct.toFixed(0)}%</span>
+          </div>`;
+      });
+
+      const annualKwh = totalKwh * 52;
+      const annualBulbDays = annualKwh / 2.4;
+
+      const submitHtml = isSubmitted
+        ? `<div class="submit-section">
+             <button class="submit-btn submitted" disabled>Submitted to Class</button>
+           </div>`
+        : `<div class="submit-section">
+             <button class="submit-btn" id="submitBtn" onclick="submitToClass()">Submit to Class</button>
+             <div class="submit-error" id="submitError">Connection error — tap to try again.</div>
+           </div>`;
+
+      resultsEl.innerHTML = `
+        <div class="results-header">
+          <div class="total-label">Your Weekly Digital Footprint</div>
+          <div class="total-value" id="totalNumber">${totalKwh.toFixed(1)}<span class="total-unit"> kWh</span></div>
+          <div class="framing-text">${getFramingText(totalKwh)}</div>
+        </div>
+
+        <div class="hero-comparison">
+          <div class="hero-icon">\uD83D\uDD0B</div>
+          <div class="hero-text">${Math.round(eq.phoneCharges)} phone charges</div>
+          <div class="hero-detail">Your weekly digital habits use as much energy as charging your phone ${Math.round(eq.phoneCharges)} times.</div>
+        </div>
+
+        <div class="chart-section">
+          <h3>Where does your energy go?</h3>
+          ${chartHtml}
+        </div>
+
+        <div class="equivalents">
+          <div class="equiv-card">
+            <div class="equiv-icon">\uD83D\uDE97</div>
+            <div class="equiv-value">${eq.miles.toFixed(1)}</div>
+            <div class="equiv-label">miles driven</div>
+          </div>
+          <div class="equiv-card">
+            <div class="equiv-icon">\uD83C\uDFE0</div>
+            <div class="equiv-value">${eq.householdPct.toFixed(1)}%</div>
+            <div class="equiv-label">of avg US weekly household use</div>
+          </div>
+          <div class="equiv-card">
+            <div class="equiv-icon">\uD83D\uDCA1</div>
+            <div class="equiv-value">${eq.bulbDays.toFixed(1)}</div>
+            <div class="equiv-label">days of a 100W bulb</div>
+          </div>
+        </div>
+
+        <div class="annual-section">
+          <button class="annual-toggle" id="annualToggle">See Your Annual Impact \u25BC</button>
+          <div class="annual-content" id="annualContent">
+            <div class="annual-value">${annualKwh.toFixed(0)}<span class="annual-unit"> kWh/year</span></div>
+            <div class="annual-equiv">
+              That's like a 100W bulb running for <strong>${Math.round(annualBulbDays)} days</strong> (${(annualBulbDays / 365).toFixed(1)} years),
+              or <strong>${Math.round(eq.phoneCharges * 52)}</strong> phone charges,
+              or driving <strong>${Math.round(eq.miles * 52)}</strong> miles.
+            </div>
+          </div>
+        </div>
+
+        ${submitHtml}
+      `;
+
+      resultsEl.classList.add('visible');
+
+      // Animate bars after DOM insertion
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.querySelectorAll('.chart-bar-fill').forEach(bar => {
+            bar.style.width = bar.dataset.width + '%';
+          });
+        });
+      });
+
+      // Wire annual toggle
+      const toggle = document.getElementById('annualToggle');
+      const content = document.getElementById('annualContent');
+      if (toggle && content) {
+        toggle.addEventListener('click', () => {
+          const open = content.classList.toggle('visible');
+          toggle.classList.toggle('active', open);
+          toggle.textContent = open ? 'Hide Annual Impact \u25B2' : 'See Your Annual Impact \u25BC';
+        });
+      }
+    }
+
+    // ─── Submit ───────────────────────────────────────────────────────────────
+
+    async function submitToClass() {
+      const btn = document.getElementById('submitBtn');
+      const errEl = document.getElementById('submitError');
+      if (!btn) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+      errEl.classList.remove('visible');
+
+      const body = { visitorId: VISITOR_ID };
+      for (const cat of CATEGORIES) {
+        body[cat.id] = getInputValue(cat.id);
+      }
+
+      try {
+        const res = await fetch('/api/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+
+        if (!res.ok) throw new Error('Server error');
+
+        // Lock the form
+        isSubmitted = true;
+        localStorage.setItem('dfc_submitted', 'true');
+
+        // Save values so they persist across reload
+        for (const cat of CATEGORIES) {
+          localStorage.setItem('dfc_val_' + cat.id, getInputValue(cat.id).toString());
+        }
+
+        lockForm();
+        btn.textContent = 'Submitted to Class';
+        btn.classList.add('submitted');
+      } catch (e) {
+        btn.disabled = false;
+        btn.textContent = 'Submit to Class';
+        errEl.classList.add('visible');
+        document.getElementById('connWarning').classList.add('visible');
+      }
+    }
+
+    function lockForm() {
+      for (const cat of CATEGORIES) {
+        document.getElementById('input-' + cat.id).disabled = true;
+      }
+      document.querySelectorAll('.input-card').forEach(c => c.classList.add('locked'));
+      document.getElementById('calcBtn').disabled = true;
+    }
+
+    // ─── Debounce ─────────────────────────────────────────────────────────────
+
+    let debounceTimer;
+    function onInputChange() {
+      if (isSubmitted) return;
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(renderResults, 150);
+    }
+
+    // ─── Init ─────────────────────────────────────────────────────────────────
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Restore saved values if submitted
+      if (isSubmitted) {
+        for (const cat of CATEGORIES) {
+          const saved = localStorage.getItem('dfc_val_' + cat.id);
+          if (saved) document.getElementById('input-' + cat.id).value = saved;
+        }
+        lockForm();
+        renderResults();
+      }
+
+      // Attach input listeners
+      for (const cat of CATEGORIES) {
+        const input = document.getElementById('input-' + cat.id);
+        input.addEventListener('input', onInputChange);
+      }
+
+      // Calculate button
+      document.getElementById('calcBtn').addEventListener('click', () => {
+        if (isSubmitted) return;
+        renderResults();
+        const resultsEl = document.getElementById('results');
+        if (resultsEl.classList.contains('visible')) {
+          resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

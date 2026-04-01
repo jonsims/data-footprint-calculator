@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class Dashboard — Digital Footprint</title>
+<style>
+  :root {
+    --teal: #00694E;
+    --teal-light: #e8f5f0;
+    --gold: #C5A033;
+    --gold-light: #faf3e0;
+    --charcoal: #333333;
+    --gray-light: #F0F0F0;
+    --gray-mid: #e0e0e0;
+    --white: #ffffff;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+
+    --color-ai: #7c3aed;
+    --color-google: #0369a1;
+    --color-video: #dc2626;
+    --color-calls: #d97706;
+    --color-music: #16a34a;
+    --color-cloud: #6366f1;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--gray-light); color: var(--charcoal); }
+
+  /* PIN Gate */
+  .pin-gate { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+  .pin-gate h1 { margin-bottom: 24px; color: var(--teal); font-size: 22px; }
+  .pin-gate input { border: 2px solid var(--gray-mid); border-radius: 8px; padding: 12px; font-size: 18px; text-align: center; width: 200px; margin-bottom: 12px; font-family: var(--font); }
+  .pin-gate button { background: var(--teal); color: white; border: none; border-radius: 8px; padding: 10px 24px; font-size: 16px; cursor: pointer; font-family: var(--font); }
+  .pin-error { color: #dc2626; font-size: 14px; margin-top: 8px; display: none; }
+
+  /* Dashboard */
+  .dashboard { display: none; max-width: 800px; margin: 0 auto; padding: 16px; }
+
+  .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .top-bar h1 { font-size: 20px; color: var(--teal); }
+  .top-bar .stat { font-size: 14px; color: #666; }
+  .top-bar .stat strong { color: var(--teal); font-size: 20px; }
+
+  .section { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; margin-bottom: 14px; }
+  .section h2 { font-size: 13px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+
+  /* Summary Cards */
+  .summary-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  @media (max-width: 600px) { .summary-row { grid-template-columns: 1fr; } }
+
+  .summary-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 16px;
+    text-align: center;
+  }
+
+  .summary-card .card-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--teal);
+    line-height: 1.2;
+  }
+
+  .summary-card .card-label {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+  }
+
+  .summary-card.gold .card-value { color: var(--gold); }
+
+  /* Bar Chart Rows */
+  .chart-row {
+    display: grid;
+    grid-template-columns: 110px 1fr 60px;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .chart-row:last-child { margin-bottom: 0; }
+
+  .chart-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #555;
+    text-align: right;
+  }
+
+  .chart-bar-track {
+    height: 28px;
+    background: var(--gray-light);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .chart-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .chart-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--charcoal);
+  }
+
+  /* Distribution */
+  .dist-row {
+    display: grid;
+    grid-template-columns: 50px 1fr 30px;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .dist-label {
+    font-size: 12px;
+    color: #666;
+    text-align: right;
+  }
+
+  .dist-bar-track {
+    height: 22px;
+    background: var(--gray-light);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .dist-bar-fill {
+    height: 100%;
+    background: var(--teal);
+    border-radius: 4px;
+    transition: width 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .dist-count {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--charcoal);
+  }
+
+  /* Empty state */
+  .empty { text-align: center; padding: 32px; color: #999; font-size: 15px; }
+
+  /* Controls */
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn { border: none; border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); }
+  .btn-danger { background: #dc2626; color: white; }
+  .btn-secondary { background: #6b7280; color: white; }
+  .btn-teal { background: var(--teal); color: white; }
+  .btn-note { font-size: 12px; color: #999; }
+
+  /* QR */
+  .qr-row { display: flex; gap: 12px; align-items: flex-start; margin-top: 12px; }
+  .qr-controls { flex: 1; }
+  .qr-input { width: 100%; border: 1px solid var(--gray-mid); border-radius: 6px; padding: 8px; font-size: 13px; margin-bottom: 6px; font-family: var(--font); }
+  .qr-preview { width: 120px; flex-shrink: 0; }
+  .qr-preview svg { width: 100%; height: auto; }
+  .qr-url { font-size: 11px; color: #999; word-break: break-all; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div id="pinGate" class="pin-gate">
+  <h1>Class Dashboard</h1>
+  <input type="password" id="pinInput" placeholder="Enter PIN" autofocus>
+  <button onclick="authenticate()">Enter</button>
+  <div class="pin-error" id="pinError">Wrong PIN. Try again.</div>
+</div>
+
+<div id="dashboard" class="dashboard">
+  <div class="top-bar">
+    <h1>Digital Footprint — Class Dashboard</h1>
+    <div class="stat">Submissions: <strong id="subCount">0</strong></div>
+  </div>
+
+  <div class="summary-row" id="summaryRow">
+    <div class="summary-card">
+      <div class="card-value" id="avgKwh">—</div>
+      <div class="card-label">Avg weekly kWh</div>
+    </div>
+    <div class="summary-card">
+      <div class="card-value" id="avgBulb">—</div>
+      <div class="card-label">Avg lightbulb-days</div>
+    </div>
+    <div class="summary-card gold">
+      <div class="card-value" id="topCat">—</div>
+      <div class="card-label" id="topCatLabel">Dominant category</div>
+    </div>
+  </div>
+
+  <div id="chartsArea">
+    <div class="empty" id="emptyState">Waiting for student submissions...</div>
+  </div>
+
+  <div class="section">
+    <h2>QR Code</h2>
+    <div class="qr-row">
+      <div class="qr-controls">
+        <input type="text" class="qr-input" id="qrUrlInput" placeholder="Student URL (e.g. tunnel URL)">
+        <button class="btn btn-teal" onclick="generateQR()">Generate QR</button>
+      </div>
+      <div class="qr-preview" id="qrContainer"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="controls">
+      <button class="btn btn-danger" onclick="resetSession()">Reset All Data</button>
+      <button class="btn btn-secondary" onclick="loadDummy()">Load Test Data (40)</button>
+      <span class="btn-note">Reset clears all submissions for next section.</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const CAT_META = {
+  ai:     { label: 'AI Queries',     color: '#7c3aed' },
+  google: { label: 'Google Searches', color: '#0369a1' },
+  video:  { label: 'Video Streaming', color: '#dc2626' },
+  calls:  { label: 'Video Calls',     color: '#d97706' },
+  music:  { label: 'Music Streaming', color: '#16a34a' },
+  cloud:  { label: 'Cloud Sync',      color: '#6366f1' },
+};
+
+let PIN = '';
+let pollTimer;
+
+// ─── Auth ───────────────────────────────────────────────────────────────────
+
+async function authenticate() {
+  PIN = document.getElementById('pinInput').value;
+  try {
+    const res = await fetch('/api/admin/verify', { headers: { 'x-admin-pin': PIN } });
+    if (!res.ok) { document.getElementById('pinError').style.display = 'block'; return; }
+    document.getElementById('pinGate').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    autoGenerateQR();
+    poll();
+  } catch (e) { document.getElementById('pinError').style.display = 'block'; }
+}
+
+document.getElementById('pinInput').addEventListener('keydown', e => { if (e.key === 'Enter') authenticate(); });
+
+function adminFetch(url, opts = {}) {
+  opts.headers = { ...opts.headers, 'x-admin-pin': PIN, 'Content-Type': 'application/json' };
+  return fetch(url, opts);
+}
+
+// ─── QR ─────────────────────────────────────────────────────────────────────
+
+function autoGenerateQR() {
+  document.getElementById('qrUrlInput').value = window.location.origin + '/';
+  generateQR();
+}
+
+async function generateQR() {
+  const url = document.getElementById('qrUrlInput').value.trim();
+  if (!url) return;
+  const svg = await adminFetch(`/api/admin/qr?url=${encodeURIComponent(url)}`).then(r => r.text());
+  document.getElementById('qrContainer').innerHTML = `${svg}<div class="qr-url">${escapeHtml(url)}</div>`;
+}
+
+// ─── Controls ───────────────────────────────────────────────────────────────
+
+async function resetSession() {
+  if (!confirm('Reset all student data? This cannot be undone.')) return;
+  await adminFetch('/api/admin/reset', { method: 'POST', body: JSON.stringify({ confirm: true }) });
+}
+
+async function loadDummy() {
+  if (!confirm('Load test data for 40 simulated students?')) return;
+  await adminFetch('/api/admin/load-dummy', { method: 'POST' });
+}
+
+// ─── Polling ────────────────────────────────────────────────────────────────
+
+async function poll() {
+  try {
+    const state = await fetch('/api/state').then(r => r.json());
+    renderDashboard(state);
+  } catch (e) {}
+  pollTimer = setTimeout(poll, 3000);
+}
+
+// Pause when tab hidden
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    clearTimeout(pollTimer);
+  } else {
+    poll();
+  }
+});
+
+// ─── Render ─────────────────────────────────────────────────────────────────
+
+function renderDashboard(state) {
+  document.getElementById('subCount').textContent = state.submissionCount;
+
+  if (state.submissionCount === 0) {
+    document.getElementById('avgKwh').textContent = '—';
+    document.getElementById('avgBulb').textContent = '—';
+    document.getElementById('topCat').textContent = '—';
+    document.getElementById('topCatLabel').textContent = 'Dominant category';
+    document.getElementById('chartsArea').innerHTML = '<div class="empty">Waiting for student submissions...</div>';
+    return;
+  }
+
+  // Summary cards
+  document.getElementById('avgKwh').textContent = state.classAverage.toFixed(1);
+  document.getElementById('avgBulb').textContent = (state.classAverage / 2.4).toFixed(1);
+
+  const topMeta = CAT_META[state.topCategory.id];
+  document.getElementById('topCat').textContent = state.topCategory.pctOfAvg + '%';
+  document.getElementById('topCatLabel').textContent = topMeta.label + ' dominates';
+
+  // Build charts
+  const catAvgs = state.categoryAverages;
+  const maxCatKwh = Math.max(...Object.values(catAvgs));
+
+  let catChartHtml = '';
+  // Sort by kWh descending
+  const catEntries = Object.entries(catAvgs).sort((a, b) => b[1] - a[1]);
+  for (const [id, kwh] of catEntries) {
+    const meta = CAT_META[id];
+    const pct = maxCatKwh > 0 ? (kwh / maxCatKwh) * 100 : 0;
+    catChartHtml += `
+      <div class="chart-row">
+        <span class="chart-label">${meta.label}</span>
+        <div class="chart-bar-track">
+          <div class="chart-bar-fill" style="width:${pct}%;background:${meta.color};"></div>
+        </div>
+        <span class="chart-value">${kwh.toFixed(3)}</span>
+      </div>`;
+  }
+
+  // Distribution
+  const maxBucket = Math.max(...state.distribution.map(d => d.count), 1);
+  let distHtml = '';
+  for (const bucket of state.distribution) {
+    const pct = (bucket.count / maxBucket) * 100;
+    distHtml += `
+      <div class="dist-row">
+        <span class="dist-label">${bucket.range}</span>
+        <div class="dist-bar-track">
+          <div class="dist-bar-fill" style="width:${pct}%;"></div>
+        </div>
+        <span class="dist-count">${bucket.count}</span>
+      </div>`;
+  }
+
+  document.getElementById('chartsArea').innerHTML = `
+    <div class="section">
+      <h2>Average Energy by Category (kWh/week)</h2>
+      ${catChartHtml}
+    </div>
+    <div class="section">
+      <h2>Distribution — Total kWh per Student</h2>
+      ${distHtml}
+    </div>
+  `;
+}
+
+function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+</script>
+</body>
+</html>

@@ -1,4 +1,8 @@
-# Ignore everything except index.html
-*
-!index.html
-!.gitignore
+# Course materials (not part of the app)
+*.pptx
+*.pdf
+*.md
+~$*
+qr-code.png
+.env
+node_modules/
