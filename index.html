@@ -216,8 +216,8 @@
       opacity: 0.9;
     }
 
-    /* Lightbulb Comparison */
-    .bulb-comparison {
+    /* Hero Comparison */
+    .hero-comparison {
       background: var(--gold-light);
       border: 2px solid var(--gold);
       border-radius: var(--radius);
@@ -226,18 +226,18 @@
       text-align: center;
     }
 
-    .bulb-comparison .bulb-icon {
+    .hero-comparison .hero-icon {
       font-size: 32px;
     }
 
-    .bulb-comparison .bulb-text {
+    .hero-comparison .hero-text {
       font-size: 16px;
       font-weight: 600;
       color: var(--charcoal);
       margin-top: 4px;
     }
 
-    .bulb-comparison .bulb-detail {
+    .hero-comparison .hero-detail {
       font-size: 13px;
       color: #666;
       margin-top: 4px;
@@ -639,13 +639,13 @@
     }
 
     function getFramingText(kwh) {
-      const days = (kwh / 2.4).toFixed(1);
-      if (kwh < 2.4) {
-        return 'Your weekly digital footprint uses less energy than a 100W bulb running for a single day.';
-      } else if (kwh <= 10) {
-        return `Your digital footprint is like leaving a 100W bulb on for ${days} days straight.`;
+      const charges = Math.round(kwh / 0.012);
+      if (charges < 100) {
+        return `That's like charging your phone ${charges} times\u2009\u2014\u2009just from your digital habits.`;
+      } else if (charges <= 500) {
+        return `That's ${charges} phone charges worth of energy every week\u2009\u2014\u2009just from your screen time.`;
       } else {
-        return `Your digital life uses serious energy\u2009\u2014\u2009equivalent to ${days} days of a lightbulb running nonstop.`;
+        return `Your digital life uses serious energy\u2009\u2014\u2009equivalent to charging your phone ${charges} times a week.`;
       }
     }
 
@@ -689,10 +689,10 @@
           <div class="framing-text">${getFramingText(totalKwh)}</div>
         </div>
 
-        <div class="bulb-comparison">
-          <div class="bulb-icon">\uD83D\uDCA1</div>
-          <div class="bulb-text">${eq.bulbHours.toFixed(0)} hours of a 100W lightbulb</div>
-          <div class="bulb-detail">That's ${eq.bulbDays.toFixed(1)} days running nonstop. A 100W bulb for 24 hours = 2.4 kWh.</div>
+        <div class="hero-comparison">
+          <div class="hero-icon">\uD83D\uDD0B</div>
+          <div class="hero-text">${Math.round(eq.phoneCharges)} phone charges</div>
+          <div class="hero-detail">Your weekly digital habits use as much energy as charging your phone ${Math.round(eq.phoneCharges)} times.</div>
         </div>
 
         <div class="chart-section">
@@ -702,11 +702,6 @@
 
         <div class="equivalents">
           <div class="equiv-card">
-            <div class="equiv-icon">\uD83D\uDCF1</div>
-            <div class="equiv-value">${Math.round(eq.phoneCharges)}</div>
-            <div class="equiv-label">phone charges</div>
-          </div>
-          <div class="equiv-card">
             <div class="equiv-icon">\uD83D\uDE97</div>
             <div class="equiv-value">${eq.miles.toFixed(1)}</div>
             <div class="equiv-label">miles driven</div>
@@ -715,6 +710,11 @@
             <div class="equiv-icon">\uD83C\uDFE0</div>
             <div class="equiv-value">${eq.householdPct.toFixed(1)}%</div>
             <div class="equiv-label">of avg US weekly household use</div>
+          </div>
+          <div class="equiv-card">
+            <div class="equiv-icon">\uD83D\uDCA1</div>
+            <div class="equiv-value">${eq.bulbDays.toFixed(1)}</div>
+            <div class="equiv-label">days of a 100W bulb</div>
           </div>
         </div>
 
